@@ -10,6 +10,7 @@ from django.views.generic.list import ListView
 from django.conf import settings
 from django.contrib import messages
 from django.utils.translation import ugettext as _
+from django.utils import translation
 from django.http import HttpResponseForbidden, Http404, HttpResponseRedirect
 
 from userena.forms import (SignupForm, SignupFormOnlyEmail, AuthenticationForm,
@@ -109,7 +110,7 @@ def signup(request, signup_form=SignupForm,
     # If signup is disabled, return 403
     if userena_settings.USERENA_DISABLE_SIGNUP:
         return HttpResponseForbidden(_("Signups are disabled."))
-    
+
     # If no usernames are wanted and the default form is used, fallback to the
     # default form that doesn't display to enter the username.
     if userena_settings.USERENA_WITHOUT_USERNAMES and (signup_form == SignupForm):
@@ -645,6 +646,12 @@ def profile_edit(request, username, edit_profile_form=EditProfileForm,
             profile = form.save()
 
             if userena_settings.USERENA_USE_MESSAGES:
+                # We force the profile language here so the user receive the
+                # success message in the updated language (if he has changed
+                # is language preference)
+                lang = getattr(profile, userena_settings.USERENA_LANGUAGE_FIELD, None)
+                if lang:
+                    translation.activate(lang)
                 messages.success(request, _('Your profile has been updated.'),
                                  fail_silently=True)
 
