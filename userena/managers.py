@@ -31,7 +31,7 @@ class UserenaManager(UserManager):
     """ Extra functionality for the Userena model. """
 
     def create_user(self, username, email, password, active=False,
-                    send_email=True):
+                    send_email=True, **kwargs):
         """
         A simple wrapper that creates a new :class:`User`.
 
@@ -57,9 +57,10 @@ class UserenaManager(UserManager):
 
         """
         now = get_datetime_now()
-
+        # Use kwargs to allow custom fields that might be required to be
+        # passed with Django 1.5 custom user models
         new_user = get_user_model().objects.create_user(
-            username, email, password)
+            username, email, password, **kwargs)
         new_user.is_active = active
         new_user.save()
 
