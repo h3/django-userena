@@ -412,6 +412,13 @@ def signin(request, auth_form=AuthenticationForm,
                 else: request.session.set_expiry(0)
 
                 if userena_settings.USERENA_USE_MESSAGES:
+                    # We force the profile language here so the user receive the
+                    # success message in the updated language (if he has changed
+                    # is language preference)
+                    profile = request.user.get_profile()
+                    lang = getattr(profile, userena_settings.USERENA_LANGUAGE_FIELD, None)
+                    if lang:
+                        translation.activate(lang)
                     messages.success(request, _('You have been signed in.'),
                                      fail_silently=True)
 
