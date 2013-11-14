@@ -123,13 +123,12 @@ def signup(request, signup_form=SignupForm,
         if form.is_valid():
             user = form.save()
 
-            # We force the profile language here so the user receive the
-            # success message in the updated language (if he has changed
-            # is language preference)
+            # We set the language preference using the language used
+            # while filling the signup form
             profile = user.get_profile()
-            lang = getattr(profile, userena_settings.USERENA_LANGUAGE_FIELD, None)
-            if lang:
-                translation.activate(lang)
+            profile.language = request.LANGUAGE_CODE
+            profile.save()
+            translation.activate(request.LANGUAGE_CODE)
 
             # Send the signup complete signal
             userena_signals.signup_complete.send(sender=None,
