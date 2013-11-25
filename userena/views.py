@@ -123,6 +123,13 @@ def signup(request, signup_form=SignupForm,
         if form.is_valid():
             user = form.save()
 
+            # We set the language preference using the language used
+            # while filling the signup form
+            profile = user.get_profile()
+            profile.language = request.LANGUAGE_CODE
+            profile.save()
+            translation.activate(request.LANGUAGE_CODE)
+
             # Send the signup complete signal
             userena_signals.signup_complete.send(sender=None,
                                                  user=user)
@@ -412,6 +419,13 @@ def signin(request, auth_form=AuthenticationForm,
                 else: request.session.set_expiry(0)
 
                 if userena_settings.USERENA_USE_MESSAGES:
+                    # We force the profile language here so the user receive the
+                    # success message in the updated language (if he has changed
+                    # is language preference)
+                    profile = request.user.get_profile()
+                    lang = getattr(profile, userena_settings.USERENA_LANGUAGE_FIELD, None)
+                    if lang:
+                        translation.activate(lang)
                     messages.success(request, _('You have been signed in.'),
                                      fail_silently=True)
 
